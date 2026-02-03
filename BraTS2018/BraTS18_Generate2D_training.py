@@ -1,7 +1,7 @@
 """
 ## https://github.com/xwjBupt/BraTS2Dpreprocessing
 """
-
+# %%
 import os
 import numpy as np
 import SimpleITK as sitk
@@ -62,6 +62,10 @@ def file_name_path(file_dir, dir=True, file=False):
 
 pathhgg_list = file_name_path(bratshgg_path)
 pathlgg_list = file_name_path(bratslgg_path)
+
+# ---- ignore macOS DS_Store-like entries ----
+pathhgg_list = [x for x in pathhgg_list if not str(x).startswith(".DS_Store")]
+pathlgg_list = [x for x in pathlgg_list if not str(x).startswith(".DS_Store")]
 
 
 # %%

@@ -27,32 +27,38 @@ train_path:训练集图像的存放路径
 test_path:测试集图像的存放路径
 train : test = 8 : 2
 """
-def divideTrainValidationTest(source_path,train_path,test_path):
-    source_image_dir=os.listdir(source_path)
-    random.shuffle(source_image_dir)
-    test_image_list=source_image_dir[0:int(0.2*len(source_image_dir))]
-    train_image_list=source_image_dir[int(0.2*len(source_image_dir)):]
 
-    for train_image in train_image_list:
-        origins_train_image_path = source_path+'/'+train_image+'/'
-        new_image_path = train_path + '/' + train_image
-        isExists=os.path.exists(new_image_path)
-        if not isExists:
-            os.makedirs(new_image_path)
-        file_dir = os.listdir(origins_train_image_path)
-        for i in range(0,len(file_dir)):
-            source_image = source_path + '/' + train_image + '/' + file_dir[i]
-            copy2(source_image,new_image_path)
-    for test_image in test_image_list:
-        origins_test_image_path = source_path+'/'+test_image+'/'
-        new_image_path = test_path + '/' + test_image
-        isExists=os.path.exists(new_image_path)
-        if not isExists:
-            os.makedirs(new_image_path)
-        file_dir = os.listdir(origins_test_image_path)
-        for i in range(0,len(file_dir)):
-            source_image = source_path + '/' + test_image + '/' + file_dir[i]
-            copy2(source_image,new_image_path)
+"""
+Updated to ignore hidden files like .DS_Store when generating txt files. 
+author : Ibrahim
+"""
+def divideTrainValidationTest(source_path, train_path, test_path):
+    # List only subdirectories (patients), ignore files like .DS_Store
+    entries = [d for d in os.listdir(source_path)
+               if os.path.isdir(os.path.join(source_path, d)) and not d.startswith(".")]
+
+    random.shuffle(entries)
+
+    split = int(0.2 * len(entries))
+    test_image_list = entries[:split]
+    train_image_list = entries[split:]
+
+    def copy_patient(patient_id, dst_root):
+        src_dir = os.path.join(source_path, patient_id)
+        dst_dir = os.path.join(dst_root, patient_id)
+        os.makedirs(dst_dir, exist_ok=True)
+
+        for fname in os.listdir(src_dir):
+            src_file = os.path.join(src_dir, fname)
+            # copy only files (skip nested dirs if any)
+            if os.path.isfile(src_file) and not fname.startswith("."):
+                copy2(src_file, dst_dir)
+
+    for pid in train_image_list:
+        copy_patient(pid, train_path)
+
+    for pid in test_image_list:
+        copy_patient(pid, test_path)
 
 
 """"生成测试集、验证集、测试集的txt文件"""
@@ -83,7 +89,7 @@ def generatetxt(train_path,test_path):
 
 if __name__=='__main__':
     data_path = './data/BraTS2018_split'#划分以后的train.val.test图像文件夹的存放位置
-    source_path = './data/2-MICCAI_BraTS_2018/MICCAI_BraTS_2018_Data_Training/LGG'#划分前所有图像文件夹的存放位置（文件夹的存储层级是一级，按照标签命名）
+    source_path = './data/MICCAI_BraTS_2018_Data_Training/LGG'#划分前所有图像文件夹的存放位置（文件夹的存储层级是一级，按照标签命名）
     train_path = './data/BraTS2018_split/train/LGG'#划分以后训练集图像对应的存放位置
     test_path = './data/BraTS2018_split/test/LGG'#划分以后测试集图像对应的存放位置
 
